@@ -84,13 +84,14 @@ This way, `std::remove_reference_t<T>&` is truly an lvalue reference type.
 The requires-expression can be used to specify variable names with certain types,
 and use them in expressions like `{ t == u }`.
 Note that none of these variables ever get allocated and are purely there to see if
-syntactically the expressions are valid!
+the expressions are syntactically valid!
 Lastly, the return-type-constraint (stuff followed by `->`) must be a concept starting from C++20.
 In TS version (experimental), they allow this constraint to be types, i.e. the following was allowed:
 ```cpp
 {t == u} -> bool;
 ```
 but was removed from the standard in C++20.
+
 Note also that `std::boolean` is a pre-defined concept in `<concepts>`.
 It takes in a single template parameter.
 When specifying return-type-constraint, the compiler deduces the first parameter from the return type of the expression.
@@ -167,7 +168,7 @@ What if `x++` returns something so crazy that it cannot even be converted to typ
 The last step is to _constrain_ the type `T` such that both expressions are valid,
 `x++` returns something that can be converted to `T`,
 and `++x` returns something of type `T&`.
-This is precisely our Incrementable concept.
+This is precisely our `Incrementable` concept!
 Using concepts, we can fully generalize the function as such:
 
 ```cpp
@@ -176,7 +177,7 @@ T& double_increment(T& x)
 {T y = x++; return ++x;}
 ```
 
-The following is a test code that uses Incrementable concept:
+The following is a test code that uses `Incrementable` concept:
 ```cpp
 struct incrementable
 {
@@ -221,7 +222,7 @@ int main()
 Note that the struct `incrementable` satisfies the concept `Incrementable`.
 The struct `not_incrementable` satisfies all of the constraints of `Incrementable` except that
 the return type of prefix `operator++` is `int&`, which is _not_ the same as `not_incrementable&`.
-Hence, you will get a compiler error once you call `double_increment`!
+Hence, you will get a compiler error once you pass it to `double_increment`!
 
 The test code is located in `src` directory - feel free to play around with it!
 
