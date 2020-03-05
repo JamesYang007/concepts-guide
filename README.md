@@ -42,7 +42,7 @@ inline constexpr bool is_lvalue_reference_v = is_lvalue_reference<T>::value; // 
 ```
 
 Again, `is_lvalue_reference` is a class template and it can be thought of as a mapping
-from a type `T` to some (compile-known) value, which gets stored as a static constexpr bool member
+from a type `T` to some (compile-time known) value, which gets stored as a `static constexpr bool` member
 called `value`.
 It is specially written such that it will evaluate to true so long as `T` is some lvalue reference.
 As an example, the following behavior holds:
@@ -76,13 +76,13 @@ concept equality_comparable =
     };
 ```
 
-We now know what `remove_reference_t` does (check [this](#type_traits))!
+We now know what `remove_reference_t` does (read [this](#type_traits))!
 It's just to ensure that whatever gets passed in as `T`, 
-it will be stripped of any references (&'s) and then transformed to an lvalue reference.
+it will be stripped of any references (&'s).
 This way, `std::remove_reference_t<T>&` is truly an lvalue reference type.
 
 The requires-expression can be used to specify variable names with certain types,
-and use them in expressions like `{ t == u }`.
+and these variables can be used in expressions like `{ t == u }`.
 Note that none of these variables ever get allocated and are purely there to see if
 the expressions are syntactically valid!
 Lastly, the return-type-constraint (stuff followed by `->`) must be a concept starting from C++20.
@@ -93,8 +93,11 @@ In TS version (experimental), they allow this constraint to be types, i.e. the f
 but was removed from the standard in C++20.
 
 Note also that `std::boolean` is a pre-defined concept in `<concepts>`.
-It takes in a single template parameter.
-When specifying return-type-constraint, the compiler deduces the first parameter from the return type of the expression.
+It takes in a single template parameter, but note that we never specified the parameter, i.e. didn't do something like
+```cpp
+{ t == u } -> std::boolean</* something */>;
+```
+When specifying return-type-constraint, the compiler substitutes the first parameter with the return type of the expression.
 
 ### User-defined Concepts
 
@@ -154,7 +157,7 @@ int& double_increment(int& x)
 It first postfix-increments `x` and stores the result into `y`, which is of type `int`.
 And then prefix-increment `x`, hence double-incrementing, and return as an lvalue reference.
 
-Of course, this wrapper actually applies more generally to other types such as `char, double, Complex`, etc.
+Of course, this function actually applies more generally to other types such as `char, double, Complex`, etc.
 We can generalize this by using templates as follows:
 ```cpp
 template <class T>
@@ -225,6 +228,8 @@ the return type of prefix `operator++` is `int&`, which is _not_ the same as `no
 Hence, you will get a compiler error once you pass it to `double_increment`!
 
 The test code is located in `src` directory - feel free to play around with it!
+Try coming up with example functions like `double_increment` for the other concepts (`Decrementable`, `Crementable`),
+and write test code to verify your implementation.
 
 ----
 
