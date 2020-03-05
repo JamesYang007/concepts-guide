@@ -47,9 +47,9 @@ called `value`.
 It is specially written such that it will evaluate to true so long as `T` is some lvalue reference.
 As an example, the following behavior holds:
 ```cpp
-std::is_lvalue_reference<int>;   // evaluates to false - not a reference type
-std::is_lvalue_reference<int&>;  // evaluates to true  - is lvalue reference type
-std::is_lvalue_reference<int&&>; // evaluates to false - is rvalue reference type
+std::is_lvalue_reference_v<int>;   // evaluates to false - not a reference type
+std::is_lvalue_reference_v<int&>;  // evaluates to true  - is lvalue reference type
+std::is_lvalue_reference_v<int&&>; // evaluates to false - is rvalue reference type
 ```
 
 These patterns are pervasive in metaprogramming; pretty much all the stuff in `type_traits` is defined in this way.
@@ -150,8 +150,8 @@ Consider the following function that compiles even with pre-C++11 compiler.
 int& double_increment(int& x) 
 {int y = x++; return ++x;}
 ```
-It first postfix-increments `x` and stores the result into `y`, which is of type `T`.
-And then we return the result of `++x`, hence double-incrementing.
+It first postfix-increments `x` and stores the result into `y`, which is of type `int`.
+And then prefix-increment `x`, hence double-incrementing, and return as an lvalue reference.
 
 Of course, this wrapper actually applies more generally to other types such as `char, double, Complex`, etc.
 We can generalize this by using templates as follows:
@@ -161,7 +161,7 @@ T& double_increment(T& x)
 {T y = x++; return ++x;}
 ```
 
-The problem now is that `T` is way too general - 
+The problem now is that `T` is _way_ too general - 
 what if `x++` or `++x` doesn't even compile for some types?
 What if `x++` returns something so crazy that it cannot even be converted to type `T`?
 The last step is to _constrain_ the type `T` such that both expressions are valid,
