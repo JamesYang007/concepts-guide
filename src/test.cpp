@@ -19,6 +19,13 @@ concept Incrementable =
 // Dummy Class Definitions
 //////////////////////////////////////////
 
+struct incrementable
+{
+    incrementable& operator++() {return *this;}; 
+    incrementable operator++(int) {return *this;} 
+    int x = 0;
+};
+
 struct not_incrementable
 {
     int& operator++() {return ++x;};    // prefix operator++; int& not same as not_incrementable&
@@ -33,18 +40,23 @@ struct not_incrementable
 
 // double_increment function should only work for Incrementable types
 template <Incrementable T>
-T& double_incrementable(T& x)
+T& double_increment(T& x)
 {T y = x++; return ++x;}
 
 int main()
 {
+    // Sanity-check
     int x = 2;
-    assert(double_incrementable(x) == 4);
+    assert(double_increment(x) == 4);
     assert(x == 4);
 
+    // Test struct incrementable 
+    incrementable inc;
+    double_increment(inc);
+
     // compiler error if the following uncommented
-    //not_incrementable y;
-    //double_incrementable(y);
+    //not_incrementable ninc;
+    //double_increment(ninc);
     
     std::cerr << "PASSED\n";
 
