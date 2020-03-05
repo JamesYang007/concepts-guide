@@ -28,8 +28,8 @@ struct incrementable
 
 struct not_incrementable
 {
-    int& operator++() {return ++x;};    // prefix operator++; int& not same as not_incrementable&
-    not_incrementable operator++(int)   // note: not_incrementable is (trivially) convertible to not_incrementable
+    int& operator++() {return ++x;};    // prefix operator++; note: int& not same as not_incrementable&
+    not_incrementable operator++(int) 
     {return *this;} 
     int x = 0;
 };
