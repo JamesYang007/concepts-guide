@@ -236,6 +236,37 @@ The test code is located in `src` directory - feel free to play around with it!
 Try coming up with example functions like `double_increment` for the other concepts (`Decrementable`, `Crementable`),
 and write test code to verify your implementation.
 
+#### How do I go about defining concepts for this assignment?
+
+The previous sections covered how one can write _a_ concept.
+This assignment specifically requires you to use iterator-related concepts.
+This section is for those who are either forced to write concepts on their own (no gcc-10),
+or interested in getting practice with writing concepts.
+
+From the lifting method described [above](#how-do-we-use-these-concepts), 
+we have to first understand how the generic types should be constrained so we must look at the documentation page for
+`std::find, std::find_if, std::sort`.
+You will see under `Parameters`, a tiny section called `Type Requirements`, which explains the properties
+assumed for each of the template parameters.
+
+For example, `std::find` requires that the template parameter `InputIt` must meet the requirements of `LegacyInputIterator`.
+If you check out the page for [LegacyInputIterator](https://en.cppreference.com/w/cpp/named_req/InputIterator),
+you will see a list of requirements that look eerily similar in format 
+as the one for `Incrementable` described in this [section](#user-defined-concepts).
+Note that a lot of these concepts build on top of other lower-level concepts - 
+you just have to recursively go down.
+Feel free to approximate these concepts, but **make sure you are at least constraining the types enough such that
+all of the things assumed by the functions `std::find, std::find_if, std::sort` are valid**.
+For example, `std::find` will do something like `*first == val`.
+So, you must at least constrain your input iterator concept (whatever you end up naming it) such that this expression is valid.
+
+Here is a complete list of links that may be helpful including those referenced in this README :
+- [Iterator Library](https://en.cppreference.com/w/cpp/iterator)
+    - [iterator_traits](https://en.cppreference.com/w/cpp/iterator/iterator_traits)
+- [concepts header](https://en.cppreference.com/w/cpp/header/concepts)
+- [concepts documentation](https://en.cppreference.com/w/cpp/experimental/constraints)
+- [type_traits header](https://en.cppreference.com/w/cpp/header/type_traits)
+
 ----
 
 Hopefully, this was helpful in getting you started with the assignment and understanding what concepts is all about! :)
