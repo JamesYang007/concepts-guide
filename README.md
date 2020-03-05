@@ -147,7 +147,7 @@ As shown in lecture, we'll use the lifting method to motivate the need for the a
 Consider the following function that compiles even with pre-C++11 compiler.
 ```cpp
 int& double_increment(int& x) 
-{T y = x++; return ++x;}
+{int y = x++; return ++x;}
 ```
 It first postfix-increments `x` and stores the result into `y`, which is of type `T`.
 And then we return the result of `++x`, hence double-incrementing.
@@ -171,9 +171,56 @@ Using concepts, we can fully generalize the function as such:
 
 ```cpp
 template <Incrementable T>
-T& increment(T& x)
+T& double_increment(T& x)
 {T y = x++; return ++x;}
 ```
+
+The following is a test code that uses Incrementable concept:
+```cpp
+struct incrementable
+{
+    incrementable& operator++() {return *this;}; 
+    incrementable operator++(int) {return *this;} 
+    int x = 0;
+};
+
+struct not_incrementable
+{
+    int& operator++() {return ++x;};    // prefix operator++; int& not same as not_incrementable&
+    not_incrementable operator++(int)   // note: not_incrementable is (trivially) convertible to not_incrementable
+    {return *this;} 
+    int x = 0;
+};
+
+template <Incrementable T>
+T& double_increment(T& x)
+{T y = x++; return ++x;}
+
+int main()
+{
+    // Sanity-check
+    int x = 2;
+    assert(double_increment(x) == 4);
+    assert(x == 4);
+
+    // Test struct incrementable 
+    incrementable inc;
+    double_increment(inc);
+
+    // compiler error if the following uncommented
+    //not_incrementable ninc;
+    //double_increment(ninc);
+    
+    std::cerr << "PASSED\n";
+
+    return 0;
+}
+```
+
+Note that the struct `incrementable` satisfies the concept Incrementable.
+The struct `not_incrementable` satisfies all of the constraints of Incrementable except that
+the return type of prefix operator++ is `int&`, which is _not_ the same as `not_incrementable&`.
+Hence, you will get a compiler error once you call `double_increment`!
 
 The test code is located in `src` directory - feel free to play around with it!
 
