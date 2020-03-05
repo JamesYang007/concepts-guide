@@ -6,18 +6,75 @@ Concepts is a new language feature fully supported in C++20
 that aims to simply generic programming and equip users with type safety.
 The following is a quick overview of concepts, mostly adopted and inspired by the [concepts and constraints documentation page](https://en.cppreference.com/w/cpp/language/constraints).
 
-## Writing Concepts
+## Concepts
 
-### type_traits
+### Pre-defined Concepts 
+
+Many useful pre-defined concepts have already been defined in `<concepts>` header,
+which are only available starting from gcc-10.
+One can view documentation pages for these concepts in [this page](https://en.cppreference.com/w/cpp/header/concepts).
+You may copy and paste the possible implementations for these concepts into your code to build on top of them.
+
+#### equality_comparable (simplified)
+
+Looking at their implementation is one of the best ways to learn how to use concepts!
+Here is a simplified implementation of `equality_comparable`, which we also saw in class, 
+of the one in [this page](https://en.cppreference.com/w/cpp/concepts/equality_comparable):
+```cpp
+template<class T, class U = T>
+concept equality_comparable = 
+    requires(T t, U u) {
+        { t == u } -> bool;
+        { t != u } -> bool;
+        { u == t } -> bool;
+        { u != t } -> bool;
+    };
+```
+
+What does this mean? `equality_comparable` is given two types in general, 
+where the second type is by default the same as the first type if unspecified,
+and checks that the expressions using `operator==` and `operator!=` on these types are valid
+as well as return a value of type `bool`.
+
+The requires-expression can be used to specify variable names with certain types,
+and these variables can be used in expressions like `{ t == u }`.
+Note that none of these variables ever get allocated and are purely there to see if
+the expressions are syntactically valid!
+Lastly, the return-type-constraint (stuff followed by `->`) must be a concept starting from C++20.
+In TS version (experimental), they allow this constraint to be types, i.e. the following was allowed:
+```cpp
+{ t == u } -> bool;
+```
+but was *removed from the standard in C++20* (so this doesn't actually compile with C++20, 
+but does with previous standards with `-fconcepts`).
+
+#### equality_comparable (not so simplified)
+
+Ok, the [previous section](#equality_comparable-simplified) was a bit simplified (**which is OK for homework**!),
+but how do they do it in the standard library implementation?
+
+Digging through the documentation, the following implementation is a lot closer to the actual one:
+
+```cpp
+template<class T, class U = T>
+concept equality_comparable = 
+    requires(const std::remove_reference_t<T>& t,
+             const std::remove_reference_t<U>& u) {
+        { t == u } -> std::boolean;
+        { t != u } -> std::boolean;
+        { u == t } -> std::boolean;
+        { u != t } -> std::boolean;
+    };
+```
 
 One preliminary thing has to be introduced and that's `<type_traits>` header.
 Take a look at [type_traits](https://en.cppreference.com/w/cpp/header/type_traits) 
-for a lot of cool metaprogramming tools that you can use for this assignment 
+for a lot of cool metaprogramming tools that you can (but not required to) use for this assignment 
 and to understand existing implementations of concepts.
 A lot of low-level concepts actually end up wrapping some of these tools.
 Moreover, most of the concepts are defined using these tools.
 
-Here's an example of a tool in `<type_traits>` that comes up frequently:
+Here's an example of a tool in `<type_traits>` that comes up frequently, as we see above:
 ```cpp
 template< class T >
 using remove_reference_t = typename remove_reference<T>::type;  // since C++14
@@ -35,64 +92,12 @@ std::remove_reference_t<int&&> z;
 // x, y, and z are all of type int
 ```
 
-`remove_reference_t` was an example of mapping types to types, but we can also map types to compile-time known values. Here's an example 
-```cpp
-template <class T>
-inline constexpr bool is_lvalue_reference_v = is_lvalue_reference<T>::value; // since C++17
-```
-
-Again, `is_lvalue_reference` is a class template and it can be thought of as a mapping
-from a type `T` to some (compile-time known) value, which gets stored as a `static constexpr bool` member
-called `value`.
-It is specially written such that it will evaluate to true so long as `T` is some lvalue reference.
-As an example, the following behavior holds:
-```cpp
-std::is_lvalue_reference_v<int>;   // evaluates to false - not a reference type
-std::is_lvalue_reference_v<int&>;  // evaluates to true  - is lvalue reference type
-std::is_lvalue_reference_v<int&&>; // evaluates to false - is rvalue reference type
-```
-
-These patterns are pervasive in metaprogramming; pretty much all the stuff in `type_traits` is defined in this way.
-
-### Pre-defined Concepts 
-
-Many useful pre-defined concepts have already been defined in `<concepts>` header,
-which are only available starting from gcc-10.
-One can view documentation pages for these concepts in [this page](https://en.cppreference.com/w/cpp/header/concepts).
-You may copy and paste the possible implementations for these concepts into your code to build on top of them.
-
-Looking at their implementation is one of the best ways to learn how to use concepts!
-Here is a simplified implementation of `equality_comparable`, which we also saw in class, 
-of the one in [this page](https://en.cppreference.com/w/cpp/concepts/equality_comparable):
-```cpp
-template<class T>
-concept equality_comparable = 
-    requires(const std::remove_reference_t<T>& t,
-             const std::remove_reference_t<T>& u) {
-        { t == u } -> std::boolean;
-        { t != u } -> std::boolean;
-        { u == t } -> std::boolean;
-        { u != t } -> std::boolean;
-    };
-```
-
-We now know what `remove_reference_t` does (read [this](#type_traits))!
-It's just to ensure that whatever gets passed in as `T`, 
-it will be stripped of any references (&'s).
+`remove_reference_t` is just being used in `equality_comparable`
+to ensure that whatever gets passed in as `T` will be stripped of any references (&'s).
 This way, `std::remove_reference_t<T>&` is truly an lvalue reference type.
 
-The requires-expression can be used to specify variable names with certain types,
-and these variables can be used in expressions like `{ t == u }`.
-Note that none of these variables ever get allocated and are purely there to see if
-the expressions are syntactically valid!
-Lastly, the return-type-constraint (stuff followed by `->`) must be a concept starting from C++20.
-In TS version (experimental), they allow this constraint to be types, i.e. the following was allowed:
-```cpp
-{t == u} -> bool;
-```
-but was removed from the standard in C++20.
-
 Note also that `std::boolean` is a pre-defined concept in `<concepts>`.
+It checks whether a type can be used in Boolean context.
 It takes in a single template parameter, but note that we never specified the parameter, i.e. didn't do something like
 ```cpp
 { t == u } -> std::boolean</* something */>;
