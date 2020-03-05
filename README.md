@@ -47,9 +47,9 @@ called `value`.
 It is specially written such that it will evaluate to true so long as `T` is some lvalue reference.
 As an example, the following behavior holds:
 ```cpp
-std::is_lvalue_reference<int>;  // evaluates to false - not a reference type
-std::is_lvalue_reference<int&>; // evaluates to true  - is lvalue reference type
-std::is_lvalue_reference<int&>; // evaluates to false - is rvalue reference type
+std::is_lvalue_reference<int>;   // evaluates to false - not a reference type
+std::is_lvalue_reference<int&>;  // evaluates to true  - is lvalue reference type
+std::is_lvalue_reference<int&&>; // evaluates to false - is rvalue reference type
 ```
 
 These patterns are pervasive in metaprogramming; pretty much all the stuff in `type_traits` is defined in this way.
@@ -62,7 +62,8 @@ One can view documentation pages for these concepts in [this page](https://en.cp
 You may copy and paste the possible implementations for these concepts into your code to build on top of them.
 
 Looking at their implementation is one of the best ways to learn how to use concepts!
-Here is a simplified implementation of `equality_comparable`, which we also saw in class, of the exposition in [this page](https://en.cppreference.com/w/cpp/concepts/equality_comparable):
+Here is a simplified implementation of `equality_comparable`, which we also saw in class, 
+of the one in [this page](https://en.cppreference.com/w/cpp/concepts/equality_comparable):
 ```cpp
 template<class T>
 concept equality_comparable = 
@@ -77,15 +78,15 @@ concept equality_comparable =
 
 We now know what `remove_reference_t` does (check [this](#type_traits))!
 It's just to ensure that whatever gets passed in as `T`, 
-we want to remove any reference and then add an lvalue reference, 
-such that `std::remove_reference_t<T>&` is truly an lvalue reference type.
+it will be stripped of any references (&'s) and then transformed to an lvalue reference.
+This way, `std::remove_reference_t<T>&` is truly an lvalue reference type.
 
 The requires-expression can be used to specify variable names with certain types,
 and use them in expressions like `{ t == u }`.
 Note that none of these variables ever get allocated and are purely there to see if
 syntactically the expressions are valid!
 Lastly, the return-type-constraint (stuff followed by `->`) must be a concept starting from C++20.
-In TS version, they allow this constraint to be types, i.e. the following was allowed:
+In TS version (experimental), they allow this constraint to be types, i.e. the following was allowed:
 ```cpp
 {t == u} -> bool;
 ```
@@ -97,13 +98,13 @@ When specifying return-type-constraint, the compiler deduces the first parameter
 ### User-defined Concepts
 
 Let's try implementing a couple of concepts.
-One example I just concocted is Incrementable.
-A type T satisfies Incrementable if the following hold:
+One example I just concocted is `Incrementable`.
+A type `T` satisfies `Incrementable` if the following hold:
 let `x` be an object of type `T` and 
-- x++ compiles and returns something that is convertible to T
-- ++x compiles and returns something that is T&
+- `x++` compiles and returns something that is convertible to `T`
+- `++x` compiles and returns something that is `T&`
 
-Here is a possible implementation of the new concept Incrementable:
+Here is a possible implementation of the new concept `Incrementable`:
 ```cpp
 template <class T>
 concept Incrementable = 
@@ -116,9 +117,9 @@ concept Incrementable =
 
 Turns out, `<concepts>` implements the concept `convertible_to` and `same_as`,
 and `<type_traits>` contains `add_lvalue_reference_t` and `remove_reference_t`.
-You can read more about them there.
+You can read more about them in the documentation page.
 
-We can also define Decrementable in a similar way:
+We can also define `Decrementable` in a similar way:
 ```cpp
 template <class T>
 concept Decrementable = 
@@ -130,8 +131,8 @@ concept Decrementable =
 ```
 
 Now you can combine these building blocks to create a more complex concept.
-Let's define a type to satisfy the concept Crementable if it satisfies Incrementable
-and Decrementable.
+Let's define a type to satisfy the concept `Crementable` if it satisfies `Incrementable`
+and `Decrementable`.
 The following is a possible implementation:
 ```cpp
 template <class T>
@@ -141,7 +142,7 @@ concept Crementable = Incrementable<T> && Decrementable<T>;
 #### How do we use these concepts?
 
 Let's write a couple of stupid, but instructive functions.
-We will first write a double-incrementing function using both prefix and postfix operator++.
+We will first write a double-incrementing function using both prefix and postfix `operator++`.
 As shown in lecture, we'll use the lifting method to motivate the need for the above concepts.
 
 Consider the following function that compiles even with pre-C++11 compiler.
@@ -217,9 +218,9 @@ int main()
 }
 ```
 
-Note that the struct `incrementable` satisfies the concept Incrementable.
-The struct `not_incrementable` satisfies all of the constraints of Incrementable except that
-the return type of prefix operator++ is `int&`, which is _not_ the same as `not_incrementable&`.
+Note that the struct `incrementable` satisfies the concept `Incrementable`.
+The struct `not_incrementable` satisfies all of the constraints of `Incrementable` except that
+the return type of prefix `operator++` is `int&`, which is _not_ the same as `not_incrementable&`.
 Hence, you will get a compiler error once you call `double_increment`!
 
 The test code is located in `src` directory - feel free to play around with it!
